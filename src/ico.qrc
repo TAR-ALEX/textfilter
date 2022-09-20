@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/incons">
+        <file>x-red.png</file>
+        <file>plus-green.png</file>
+        <file>refresh-blue.png</file>
+        <file>x-dark.png</file>
+        <file>textfilter.png</file>
+    </qresource>
+</RCC>
