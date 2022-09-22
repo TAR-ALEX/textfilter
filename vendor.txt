@@ -10,4 +10,4 @@ deb-init [
 deb-recurse-limit 2,
 
 deb qtbase5-dev "./usr/" "./vendor/usr/",
-deb qtbase5-dev "./lib/" "./vendor/lib/",
+deb libgl1-mesa-dev "./usr/" "./vendor/usr/",
