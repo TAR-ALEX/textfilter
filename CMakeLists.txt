@@ -7,29 +7,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(textfilter)
 include_directories(
     "./vendor/usr/include/"
-    # "./vendor/usr/include/x86_64-linux-gnu/"
-    # "./vendor/usr/include/x86_64-linux-gnu/qt5/"
-    # "./vendor/usr/include/x86_64-linux-gnu/qt5/*"
+    "./vendor/include/"
     "./src"
 ) 
-
-# set(CMAKE_SHARED_LIBRARY_PREFIX ./vendor/)
 
 add_library(Qt5::Gui_EGL SHARED IMPORTED)
 set_property(TARGET Qt5::Gui_EGL APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES "./vendor/usr/include/")
 set_property(TARGET Qt5::Gui_EGL APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_property(TARGET Qt5::Gui_EGL PROPERTY IMPORTED_LOCATION_RELEASE "./vendor/usr/lib/x86_64-linux-gnu/libEGL.so")
-# target_include_directories(Qt5::Gui_EGL INTERFACE "./vendor/usr/include/")
 
 add_library(Qt5::Gui_GL SHARED IMPORTED)
 set_property(TARGET Qt5::Gui_GL APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES "./vendor/usr/include/")
 set_property(TARGET Qt5::Gui_GL APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_property(TARGET Qt5::Gui_GL PROPERTY IMPORTED_LOCATION_RELEASE "./vendor/usr/lib/x86_64-linux-gnu/libGL.so")
-# target_include_directories(Qt5::Gui_GL INTERFACE "./vendor/usr/include/")
 
 
-# link_directories(./vendor/usr/lib/x86_64-linux-gnu)
-# link_directories(./vendor/usr/lib)
 set(Qt5_DIR ./vendor/usr/lib/x86_64-linux-gnu/cmake/Qt5)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
@@ -45,9 +37,10 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
-file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*")
+file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS "./src/*")
+file(GLOB_RECURSE VENDOR_SOURCES CONFIGURE_DEPENDS "./vendor/src/*")
 
-add_executable(${PROJECT_NAME} ${APP_SOURCES})
+add_executable(${PROJECT_NAME} ${APP_SOURCES} ${VENDOR_SOURCES})
 
 target_link_libraries(textfilter PRIVATE Qt5::Widgets)
 

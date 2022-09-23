@@ -4,6 +4,7 @@
 #include<QDir>
 #include <QMainWindow>
 #include "keyedit.h"
+#include <vector>
 
 
 namespace Ui {
@@ -49,6 +50,12 @@ private slots:
 
     void on_actionTransparent_triggered(bool checked);
 
+    void on_actionOpen_Key_triggered();
+
+    void on_actionText_Key_triggered();
+
+    void on_checkboxAES_toggled(bool);
+
 private:
 
     Ui::MainWindow *ui;
@@ -74,6 +81,10 @@ private:
     double transparency;
 
     bool integrated;
+
+    bool useAES = false;
+
+    std::vector<uint8_t> aesKey;
 
 };
 

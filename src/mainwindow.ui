@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>466</width>
-    <height>252</height>
+    <width>513</width>
+    <height>274</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,83 +34,7 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="5" column="3">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="5" column="1">
-     <widget class="QCheckBox" name="revtext">
-      <property name="text">
-       <string>reverse text</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="2">
-     <widget class="QCheckBox" name="checkBox">
-      <property name="text">
-       <string>reverse filter</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0">
-     <widget class="QCheckBox" name="autocopy">
-      <property name="text">
-       <string>auto copy</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-      <property name="autoExclusive">
-       <bool>false</bool>
-      </property>
-      <property name="tristate">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0" colspan="5">
-     <widget class="QPlainTextEdit" name="input">
-      <property name="placeholderText" stdset="0">
-       <string>input</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0" colspan="5">
-     <widget class="QPlainTextEdit" name="output">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-      <property name="placeholderText" stdset="0">
-       <string>output</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="4">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string/>
-      </property>
-      <property name="textFormat">
-       <enum>Qt::AutoText</enum>
-      </property>
-      <property name="pixmap">
-       <pixmap resource="ico.qrc">:/incons/textfilter.png</pixmap>
-      </property>
-      <property name="scaledContents">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0" colspan="5">
+    <item row="3" column="0" colspan="6">
      <widget class="Line" name="separate">
       <property name="enabled">
        <bool>true</bool>
@@ -132,6 +56,92 @@
       </property>
      </widget>
     </item>
+    <item row="2" column="0" colspan="6">
+     <widget class="QPlainTextEdit" name="input">
+      <property name="placeholderText">
+       <string>input</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" colspan="6">
+     <widget class="QPlainTextEdit" name="output">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="placeholderText">
+       <string>output</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QCheckBox" name="autocopy">
+      <property name="text">
+       <string>auto copy</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+      <property name="autoExclusive">
+       <bool>false</bool>
+      </property>
+      <property name="tristate">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QCheckBox" name="revtext">
+      <property name="text">
+       <string>reverse text</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QCheckBox" name="checkboxAES">
+      <property name="text">
+       <string>AES 256</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="3">
+     <widget class="QCheckBox" name="checkBox">
+      <property name="text">
+       <string>reverse filter</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="4">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Expanding</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>10000</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="5" column="5">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::AutoText</enum>
+      </property>
+      <property name="pixmap">
+       <pixmap resource="ico.qrc">:/incons/textfilter.png</pixmap>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -139,8 +149,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>466</width>
-     <height>25</height>
+     <width>513</width>
+     <height>22</height>
     </rect>
    </property>
    <property name="autoFillBackground">
@@ -194,9 +204,17 @@
     <addaction name="actionFrameless"/>
     <addaction name="actionTransparent"/>
    </widget>
+   <widget class="QMenu" name="menuAEX">
+    <property name="title">
+     <string>AES</string>
+    </property>
+    <addaction name="actionOpen_Key"/>
+    <addaction name="actionText_Key"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuOptions"/>
+   <addaction name="menuAEX"/>
   </widget>
   <action name="actionCopy">
    <property name="text">
@@ -303,12 +321,26 @@
     <string>Transparent</string>
    </property>
   </action>
+  <action name="actionKey">
+   <property name="text">
+    <string>Text Key</string>
+   </property>
+  </action>
+  <action name="actionOpen_Key">
+   <property name="text">
+    <string>Open Key</string>
+   </property>
+  </action>
+  <action name="actionText_Key">
+   <property name="text">
+    <string>Text Key</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
   <tabstop>input</tabstop>
   <tabstop>output</tabstop>
-  <tabstop>autocopy</tabstop>
  </tabstops>
  <resources>
   <include location="ico.qrc"/>

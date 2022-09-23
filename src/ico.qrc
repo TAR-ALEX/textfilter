@@ -1,9 +1,10 @@
 <RCC>
-    <qresource prefix="/incons">
-        <file>x-red.png</file>
-        <file>plus-green.png</file>
-        <file>refresh-blue.png</file>
-        <file>x-dark.png</file>
-        <file>textfilter.png</file>
+    <qresource>
+        <file>incons/x-red.png</file>
+        <file>incons/plus-green.png</file>
+        <file>incons/refresh-blue.png</file>
+        <file>incons/x-dark.png</file>
+        <file>incons/textfilter.png</file>
+        <file>assets/default.flt</file>
     </qresource>
 </RCC>

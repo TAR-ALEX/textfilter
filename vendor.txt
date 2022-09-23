@@ -9,5 +9,6 @@ deb-init [
 ],
 deb-recurse-limit 2,
 
-deb qtbase5-dev "./usr/" "./vendor/usr/",
-deb libgl1-mesa-dev "./usr/" "./vendor/usr/",
+deb "qtbase5-dev libgl1-mesa-dev" "./usr/" "./vendor/usr/",
+git "https://github.com/Urban82/Aes256.git" master "./src/aes256.cpp" "./vendor/src/aes256.cpp",
+git "https://github.com/Urban82/Aes256.git" master "./src/aes256.hpp" "./vendor/include/aes256.hpp",
