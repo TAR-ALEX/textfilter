@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Text Filter 1.1</string>
+   <string>Text Filter 1.2</string>
   </property>
   <property name="windowIcon">
    <iconset resource="ico.qrc">
@@ -34,6 +34,37 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="2" column="0" colspan="6">
+     <widget class="QPlainTextEdit" name="input">
+      <property name="placeholderText">
+       <string>input</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QCheckBox" name="revtext">
+      <property name="text">
+       <string>reverse text</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" colspan="6">
+     <widget class="QPlainTextEdit" name="output">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="placeholderText">
+       <string>output</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="2">
+     <widget class="QCheckBox" name="checkboxAES">
+      <property name="text">
+       <string>AES 256</string>
+      </property>
+     </widget>
+    </item>
     <item row="3" column="0" colspan="6">
      <widget class="Line" name="separate">
       <property name="enabled">
@@ -56,23 +87,6 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0" colspan="6">
-     <widget class="QPlainTextEdit" name="input">
-      <property name="placeholderText">
-       <string>input</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0" colspan="6">
-     <widget class="QPlainTextEdit" name="output">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-      <property name="placeholderText">
-       <string>output</string>
-      </property>
-     </widget>
-    </item>
     <item row="5" column="0">
      <widget class="QCheckBox" name="autocopy">
       <property name="text">
@@ -89,44 +103,21 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="1">
-     <widget class="QCheckBox" name="revtext">
+    <item row="6" column="0">
+     <widget class="QCheckBox" name="checkEnableFilter">
       <property name="text">
-       <string>reverse text</string>
+       <string>filter</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="2">
-     <widget class="QCheckBox" name="checkboxAES">
-      <property name="text">
-       <string>AES 256</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="3">
+    <item row="6" column="1">
      <widget class="QCheckBox" name="checkBox">
       <property name="text">
-       <string>reverse filter</string>
+       <string>invert</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="4">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Expanding</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>10000</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="5" column="5">
+    <item row="6" column="4">
      <widget class="QLabel" name="label">
       <property name="text">
        <string/>
@@ -141,6 +132,22 @@
        <bool>true</bool>
       </property>
      </widget>
+    </item>
+    <item row="6" column="2">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Expanding</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>10000</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
     </item>
    </layout>
   </widget>
@@ -210,6 +217,8 @@
     </property>
     <addaction name="actionOpen_Key"/>
     <addaction name="actionText_Key"/>
+    <addaction name="actionForget_Keys_and_Paths"/>
+    <addaction name="actionRemember_Key_Values"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -334,6 +343,19 @@
   <action name="actionText_Key">
    <property name="text">
     <string>Text Key</string>
+   </property>
+  </action>
+  <action name="actionForget_Keys_and_Paths">
+   <property name="text">
+    <string>Forget Keys and Paths</string>
+   </property>
+  </action>
+  <action name="actionRemember_Key_Values">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Store Text Keys</string>
    </property>
   </action>
  </widget>

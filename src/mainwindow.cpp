@@ -10,76 +10,11 @@
 #include <aes256.hpp>
 extern QString layoutfile;
 
-void MainWindow::loadSettings() { //open settingsfile window group
-    QSettings settings(settingsfile, QSettings::NativeFormat);
-    settings.beginGroup("window");
-    //load values into variables
-    autocopy = settings.value("autocopy", false).toBool();
-    ontop = settings.value("ontop", false).toBool();
-    frameless = settings.value("frameless", false).toBool();
-    revtext = settings.value("reversetext", false).toBool();
-    useAES = settings.value("useAES", false).toBool();
-    revfilter = false;
-    layoutfile = settings.value("currentfile", QDir::homePath() + "/.textfilter/layouts/default.flt").toString();
-    this->resize(settings.value("size").toSize());
-    this->move(settings.value("pos").toPoint());
-    settings.endGroup();
-}
-
-
-void MainWindow::saveSettings() {
-    //open settingsfile window group
-    QSettings settings(settingsfile, QSettings::NativeFormat);
-    settings.beginGroup("window");
-    //save values into file
-    settings.setValue("autocopy", autocopy);
-    settings.setValue("ontop", ontop);
-    settings.setValue("frameless", frameless);
-    settings.setValue("reversetext", revtext);
-    settings.setValue("currentfile", layoutfile);
-    settings.setValue("size", this->size());
-    settings.setValue("pos", this->pos());
-    settings.setValue("useAES", useAES);
-    settings.endGroup();
-}
-
-
-MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
-    ui->setupUi(this);
-    settingsfile = QDir::homePath() + "/.textfilter/settings";
-    alreadyopen = false;
-    loadSettings();
-    //display loaded settings.
-    ui->autocopy->setChecked(autocopy);
-    ui->actionAlways_on_top->setChecked(ontop);
-    ui->actionFrameless->setChecked(frameless);
-    ui->revtext->setChecked(revtext);
-    ui->checkboxAES->setChecked(useAES);
-    transparency = 0.9;
-    //window flags
-    if (ontop) flags |= Qt::WindowStaysOnTopHint;
-    if (frameless) flags |= Qt::FramelessWindowHint;
-    setWindowFlags(flags);
-    //check if lilter directory exists
-    layoutsDir = QDir::homePath() + "/.textfilter/layouts";
-    if (!layoutsDir.exists()) { layoutsDir.mkpath("."); }
-    //copy default file from opt if it does not exist
-    if (!QFile::exists(QDir::homePath() + "/.textfilter/layouts/default.flt")) {
-        // QFile::copy(QApplication::applicationDirPath() + "/layouts/default.key" , QDir::homePath() + "/.textfilter/layouts/default.flt");
-        QFile::copy(":/assets/default.flt", QDir::homePath() + "/.textfilter/layouts/default.flt");
-    }
-    //error message if the layout file does not exist
-    if (!QFile::exists(layoutfile)) {
-        QMessageBox z;
-        z.warning(this, "Warning", "The previously used filter does not exist.");
-        on_actionOpen_Filter_triggered();
-    }
-}
-
-MainWindow::~MainWindow() {
-    //saves settings before destruction
-    saveSettings();
-    delete ui;
+std::vector<unsigned char> toByteArray1000(QByteArray s) {
+    std::vector<unsigned char> result;
+    if(s.size() > 1000) s.resize(1000);
+    result.insert(result.end(), s.begin(), s.end());
+    return result;
 }
 
 std::vector<unsigned char> toByteArray(QString s) {
@@ -110,6 +45,102 @@ std::vector<unsigned char> base64Decode(QString data) {
     return result;
 }
 
+void MainWindow::loadSettings() { //open settingsfile window group
+    QSettings settings(settingsfile, QSettings::NativeFormat);
+    settings.beginGroup("window");
+    //load values into variables
+    autocopy = settings.value("autocopy", false).toBool();
+    ontop = settings.value("ontop", false).toBool();
+    frameless = settings.value("frameless", false).toBool();
+    revtext = settings.value("reversetext", false).toBool();
+    revfilter = settings.value("inverse", false).toBool();
+    useAES = settings.value("useAES", false).toBool();
+    layoutfile = settings.value("currentfile", QDir::homePath() + "/.textfilter/layouts/default.flt").toString();
+    this->resize(settings.value("size").toSize());
+    this->move(settings.value("pos").toPoint());
+    aesKeyPath = settings.value("aesKeyPath").toString();
+    enableFilters = settings.value("enableFilters", false).toBool();
+    allowRememberKey = settings.value("allowRememberKey", false).toBool();
+    if (settings.value("aesKey", "").toString() != "") {
+        aesKey = toByteArray(settings.value("aesKey", "").toString());
+    }
+    settings.endGroup();
+
+    if (aesKeyPath != nullptr && aesKeyPath != "") {
+        QFile f(aesKeyPath);
+        f.open(QIODevice::ReadOnly);
+        QByteArray contents = f.readAll();
+        aesKey = toByteArray(contents);
+    }
+}
+
+
+void MainWindow::saveSettings() {
+    //open settingsfile window group
+    QSettings settings(settingsfile, QSettings::NativeFormat);
+    settings.beginGroup("window");
+    //save values into file
+    settings.setValue("autocopy", autocopy);
+    settings.setValue("ontop", ontop);
+    settings.setValue("frameless", frameless);
+    settings.setValue("reversetext", revtext);
+    settings.setValue("inverse", revfilter);
+    settings.setValue("currentfile", layoutfile);
+    if (!isMaximized()) settings.setValue("size", this->size());
+    settings.setValue("pos", this->pos());
+    settings.setValue("useAES", useAES);
+    settings.setValue("aesKeyPath", aesKeyPath);
+    settings.setValue("enableFilters", enableFilters);
+    settings.setValue("allowRememberKey", allowRememberKey);
+    if (allowRememberKey && aesKeyPath == "") {
+        settings.setValue("aesKey", toQString(aesKey));
+    } else {
+        settings.setValue("aesKey", "");
+    }
+    settings.endGroup();
+}
+
+
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+    ui->setupUi(this);
+    settingsfile = QDir::homePath() + "/.textfilter/settings";
+    alreadyopen = false;
+    loadSettings();
+    //display loaded settings.
+    ui->autocopy->setChecked(autocopy);
+    ui->actionAlways_on_top->setChecked(ontop);
+    ui->actionFrameless->setChecked(frameless);
+    ui->revtext->setChecked(revtext);
+    ui->checkboxAES->setChecked(useAES);
+    ui->actionRemember_Key_Values->setChecked(allowRememberKey);
+    ui->checkEnableFilter->setChecked(enableFilters);
+    ui->checkBox->setChecked(revfilter);
+    transparency = 0.9;
+    //window flags
+    if (ontop) flags |= Qt::WindowStaysOnTopHint;
+    if (frameless) flags |= Qt::FramelessWindowHint;
+    setWindowFlags(flags);
+    //check if lilter directory exists
+    layoutsDir = QDir::homePath() + "/.textfilter/layouts";
+    if (!layoutsDir.exists()) { layoutsDir.mkpath("."); }
+    //copy default file from opt if it does not exist
+    if (!QFile::exists(QDir::homePath() + "/.textfilter/layouts/default.flt")) {
+        // QFile::copy(QApplication::applicationDirPath() + "/layouts/default.key" , QDir::homePath() + "/.textfilter/layouts/default.flt");
+        QFile::copy(":/assets/default.flt", QDir::homePath() + "/.textfilter/layouts/default.flt");
+    }
+    //error message if the layout file does not exist
+    if (!QFile::exists(layoutfile)) {
+        QMessageBox z;
+        z.warning(this, "Warning", "The previously used filter does not exist.");
+        on_actionOpen_Filter_triggered();
+    }
+}
+
+MainWindow::~MainWindow() {
+    //saves settings before destruction
+    saveSettings();
+    delete ui;
+}
 
 void MainWindow::filter(QString* text) {
     //open key configuration
@@ -118,11 +149,7 @@ void MainWindow::filter(QString* text) {
     QString input = "input";
     QString output = "output";
 
-    if (useAES && aesKey.size() == 0) {
-        useAES = false;
-        ui->checkboxAES->setChecked(useAES);
-        QMessageBox().information(this, "Note", "AES 256 key is not set!");
-    }
+    checkAES();
 
     if (revfilter) {
         if (useAES) {
@@ -136,74 +163,63 @@ void MainWindow::filter(QString* text) {
         //reversing the text
         if (revtext) {
             QString reversed;
-            //size is the text size - 1 to remove the \0 terminating character
             int size = text->size() - 1;
-            //cycle to store the reversed text
             for (int i = 0, j = size; i <= size; i++, j--) reversed[i] = (*text)[j];
-            //replace text with reversed text
             (*text) = reversed;
         }
-
-        input = "output";
-        output = "input";
-        ////char
-        settings.beginReadArray("char");
-        {
-            //get total amount of replacement cycles
-            const int total = settings.value("size").toInt();
-            //replacement cycle
-            for (int i = 0; i <= total; i++) {
-                settings.setArrayIndex(i);
-                text->replace(settings.value(input).toString(), settings.value(output).toString());
+        if (enableFilters) {
+            input = "output";
+            output = "input";
+            ////char
+            settings.beginReadArray("char");
+            {
+                const int total = settings.value("size").toInt();
+                for (int i = 0; i <= total; i++) {
+                    settings.setArrayIndex(i);
+                    text->replace(settings.value(input).toString(), settings.value(output).toString());
+                }
             }
-        }
-        settings.endArray();
-        ////word
-        settings.beginReadArray("word");
-        {
-            //get total amount of replacement cycles
-            const int total = settings.value("size").toInt();
-            //replacement cycle
-            for (int i = 0; i <= total; i++) {
-                settings.setArrayIndex(i);
-                text->replace(settings.value(input).toString(), settings.value(output).toString());
+            settings.endArray();
+            ////word
+            settings.beginReadArray("word");
+            {
+                const int total = settings.value("size").toInt();
+                for (int i = 0; i <= total; i++) {
+                    settings.setArrayIndex(i);
+                    text->replace(settings.value(input).toString(), settings.value(output).toString());
+                }
             }
+            settings.endArray();
         }
-        settings.endArray();
     } else {
-        ////word
-        settings.beginReadArray("word");
-        {
-            //get total amount of replacement cycles
-            const int total = settings.value("size").toInt();
-            //replacement cycle
-            for (int i = 0; i <= total; i++) {
-                settings.setArrayIndex(i);
-                text->replace(settings.value(input).toString(), settings.value(output).toString());
+        if (enableFilters) {
+            ////word
+            settings.beginReadArray("word");
+            {
+                const int total = settings.value("size").toInt();
+                for (int i = 0; i <= total; i++) {
+                    settings.setArrayIndex(i);
+                    text->replace(settings.value(input).toString(), settings.value(output).toString());
+                }
             }
-        }
-        settings.endArray();
-        ////char
-        settings.beginReadArray("char");
-        {
-            //get total amount of replacement cycles
-            const int total = settings.value("size").toInt();
-            //replacement cycle
-            for (int i = 0; i <= total; i++) {
-                settings.setArrayIndex(i);
-                text->replace(settings.value(input).toString(), settings.value(output).toString());
+            settings.endArray();
+            ////char
+            settings.beginReadArray("char");
+            {
+                const int total = settings.value("size").toInt();
+                for (int i = 0; i <= total; i++) {
+                    settings.setArrayIndex(i);
+                    text->replace(settings.value(input).toString(), settings.value(output).toString());
+                }
             }
+            settings.endArray();
         }
-        settings.endArray();
 
         //reversing the text
         if (revtext) {
             QString reversed;
-            //size is the text size - 1 to remove the \0 terminating character
             int size = text->size() - 1;
-            //cycle to store the reversed text
             for (int i = 0, j = size; i <= size; i++, j--) reversed[i] = (*text)[j];
-            //replace text with reversed text
             (*text) = reversed;
         }
         if (useAES) {
@@ -353,8 +369,21 @@ void MainWindow::on_actionTransparent_triggered(bool checked) {
 }
 
 void MainWindow::on_actionOpen_Key_triggered() {
-    QMessageBox z;
-    z.information(this, "Note", "TODO");
+    //opens file browser and stores its return in checkfile
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open AES 256 key"), QDir::homePath());
+    //checks if the directory is valid
+    if (filename != nullptr && filename != "") {
+        //layoutfile updated
+        QFile f(filename);
+        f.open(QIODevice::ReadOnly);
+        QByteArray contents = f.readAll();
+        aesKey = toByteArray1000(contents);
+        useAES = true;
+        ui->checkboxAES->setChecked(useAES);
+    }
+    aesKeyPath = filename;
+    checkAES();
+    //updates text
     on_input_textChanged();
 }
 
@@ -363,20 +392,47 @@ void MainWindow::on_actionText_Key_triggered() {
     QString text = QInputDialog::getText(
         this, tr("QInputDialog::getText()"), tr("Enter AES Key:"), QLineEdit::EchoMode::PasswordEchoOnEdit, "", &ok
     );
-    if (ok && !text.isEmpty()) {
+    if (ok) {
         aesKey = toByteArray(text);
         useAES = true;
         ui->checkboxAES->setChecked(useAES);
+        aesKeyPath = "";
+        checkAES();
+        on_input_textChanged();
     }
-    on_input_textChanged();
 }
 
 void MainWindow::on_checkboxAES_toggled(bool checked) {
     useAES = checked;
+    checkAES();
+    on_input_textChanged();
+}
+
+void MainWindow::checkAES() {
     if (useAES && aesKey.size() == 0) {
         useAES = false;
         ui->checkboxAES->setChecked(useAES);
         QMessageBox().information(this, "Note", "AES 256 key is not set!");
     }
+}
+
+void MainWindow::on_actionForget_Keys_and_Paths_triggered() {
+    useAES = false;
+    ui->checkboxAES->setChecked(useAES);
+    aesKey = {};
+    aesKeyPath = "";
+    saveSettings();
+}
+
+void MainWindow::on_actionRemember_Key_Values_toggled(bool checked) {
+    allowRememberKey = checked;
+    if (!allowRememberKey) {
+        allowRememberKey = false;
+        saveSettings();
+    }
+}
+
+void MainWindow::on_checkEnableFilter_stateChanged(int checked) {
+    enableFilters = checked;
     on_input_textChanged();
 }
