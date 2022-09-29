@@ -12,9 +12,22 @@ extern QString layoutfile;
 
 std::vector<unsigned char> toByteArray1000(QByteArray s) {
     std::vector<unsigned char> result;
-    if(s.size() > 1000) s.resize(1000);
+    if (s.size() > 1000) s.resize(1000);
     result.insert(result.end(), s.begin(), s.end());
     return result;
+}
+
+
+std::vector<unsigned char> toByteArray(QByteArray s) {
+    std::vector<unsigned char> result;
+    result.insert(result.end(), s.begin(), s.end());
+    return result;
+}
+
+QByteArray toQByteArray(QString s) { return s.toUtf8(); }
+
+QByteArray toQByteArray(std::vector<unsigned char> data) {
+    return QByteArray::fromRawData((const char*)data.data(), data.size());
 }
 
 std::vector<unsigned char> toByteArray(QString s) {
@@ -53,7 +66,7 @@ void MainWindow::loadSettings() { //open settingsfile window group
     ontop = settings.value("ontop", false).toBool();
     frameless = settings.value("frameless", false).toBool();
     revtext = settings.value("reversetext", false).toBool();
-    revfilter = settings.value("inverse", false).toBool();
+    revfilter = false;
     useAES = settings.value("useAES", false).toBool();
     layoutfile = settings.value("currentfile", QDir::homePath() + "/.textfilter/layouts/default.flt").toString();
     this->resize(settings.value("size").toSize());
@@ -64,6 +77,8 @@ void MainWindow::loadSettings() { //open settingsfile window group
     if (settings.value("aesKey", "").toString() != "") {
         aesKey = toByteArray(settings.value("aesKey", "").toString());
     }
+    urlEncoderString = settings.value("urlEncoderString", "").toString();
+    enableCompression = settings.value("enableCompression", false).toBool();
     settings.endGroup();
 
     if (aesKeyPath != nullptr && aesKeyPath != "") {
@@ -84,7 +99,6 @@ void MainWindow::saveSettings() {
     settings.setValue("ontop", ontop);
     settings.setValue("frameless", frameless);
     settings.setValue("reversetext", revtext);
-    settings.setValue("inverse", revfilter);
     settings.setValue("currentfile", layoutfile);
     if (!isMaximized()) settings.setValue("size", this->size());
     settings.setValue("pos", this->pos());
@@ -97,12 +111,16 @@ void MainWindow::saveSettings() {
     } else {
         settings.setValue("aesKey", "");
     }
+    settings.setValue("urlEncoderString", urlEncoderString);
+    settings.setValue("enableCompression", enableCompression);
     settings.endGroup();
 }
 
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
+    ui->input->installEventFilter(this);
+    ui->output->installEventFilter(this);
     settingsfile = QDir::homePath() + "/.textfilter/settings";
     alreadyopen = false;
     loadSettings();
@@ -114,7 +132,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->checkboxAES->setChecked(useAES);
     ui->actionRemember_Key_Values->setChecked(allowRememberKey);
     ui->checkEnableFilter->setChecked(enableFilters);
-    ui->checkBox->setChecked(revfilter);
+    ui->actionEnableCompression->setChecked(enableCompression);
     transparency = 0.9;
     //window flags
     if (ontop) flags |= Qt::WindowStaysOnTopHint;
@@ -123,10 +141,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     //check if lilter directory exists
     layoutsDir = QDir::homePath() + "/.textfilter/layouts";
     if (!layoutsDir.exists()) { layoutsDir.mkpath("."); }
-    //copy default file from opt if it does not exist
     if (!QFile::exists(QDir::homePath() + "/.textfilter/layouts/default.flt")) {
         // QFile::copy(QApplication::applicationDirPath() + "/layouts/default.key" , QDir::homePath() + "/.textfilter/layouts/default.flt");
-        QFile::copy(":/assets/default.flt", QDir::homePath() + "/.textfilter/layouts/default.flt");
+        QString toPath = QDir::homePath() + "/.textfilter/layouts/default.flt";
+        QFile::copy(":/assets/default.flt", toPath);
+        QFile::setPermissions(toPath, QFile::Permission(0x6666));
     }
     //error message if the layout file does not exist
     if (!QFile::exists(layoutfile)) {
@@ -142,6 +161,21 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
+std::pair<QString, QString> splitURLExpr(QString pattern) {
+    std::pair<QString, QString> result = {"", ""};
+    QStringList strs = pattern.split("$$$");
+    if (strs.size() >= 1) result.first = strs[0];
+    if (strs.size() >= 2) {
+        QString& r = result.second;
+        r.append(strs[1]);
+        for (size_t i = 2; i < strs.size(); i++) {
+            r.append("$$$");
+            r.append(strs[i]);
+        }
+    }
+    return result;
+}
+
 void MainWindow::filter(QString* text) {
     //open key configuration
     QSettings settings(layoutfile, QSettings::NativeFormat);
@@ -153,10 +187,18 @@ void MainWindow::filter(QString* text) {
 
     if (revfilter) {
         if (useAES) {
+            auto split = splitURLExpr(urlEncoderString);
+            *text = text->mid(split.first.size(), split.second.size() - split.first.size());
+
             std::vector<unsigned char> encryptedData = base64Decode(*text);
             std::vector<unsigned char> decryptedData;
 
             Aes256::decrypt(aesKey, encryptedData, decryptedData);
+            if (decryptedData.size() != 0 && decryptedData[0] == '\0') {
+                decryptedData.erase(decryptedData.begin());
+                decryptedData = toByteArray(qUncompress(toQByteArray(decryptedData)));
+            }
+
             *text = toQString(decryptedData);
         }
 
@@ -224,23 +266,54 @@ void MainWindow::filter(QString* text) {
         }
         if (useAES) {
             std::vector<unsigned char> encryptedData;
-            Aes256::encrypt(aesKey, toByteArray(*text), encryptedData);
+            auto byteArr = toQByteArray(*text);
+            size_t originalSize = byteArr.size();
+            if (enableCompression) {
+                byteArr = qCompress(byteArr, 9);
+                byteArr.prepend('\0');
+                size_t newSize = byteArr.size();
+                if (newSize > originalSize) byteArr = toQByteArray(*text); // dont compress if worse
+            }
+            Aes256::encrypt(aesKey, toByteArray(byteArr), encryptedData);
             (*text) = base64Encode(encryptedData);
+            auto split = splitURLExpr(urlEncoderString);
+            (*text) = split.first + (*text) + split.second;
         }
     }
 }
 
+bool MainWindow::eventFilter(QObject* o, QEvent* event) {
+    if (event->type() == QEvent::FocusIn) { //|| event->type() == QEvent::FocusOut
+        if (ui->input->hasFocus()) lastTextFocus = 0;
+        if (ui->output->hasFocus()) lastTextFocus = 1;
+    }
+    return false;
+}
+
+void MainWindow::updateText() {
+    on_input_textChanged();
+    on_output_textChanged();
+}
+
 void MainWindow::on_input_textChanged() {
-    //sets text to input value
+    if (lastTextFocus != 0) return;
+
     QString text = ui->input->toPlainText();
-    ////experimental size limit
-    ////if (text.size() > 50000){
-    ////text.resize(50000);
-    ////ui->input->setPlainText(text);}
-    //filtered
     filter(&text);
     ui->output->setPlainText(text);
-    //copies to clipboard if wanted
+    if (autocopy) {
+        QClipboard* clipboard = QApplication::clipboard();
+        clipboard->setText(text);
+    }
+}
+
+void MainWindow::on_output_textChanged() {
+    if (lastTextFocus != 1) return;
+    QString text = ui->output->toPlainText();
+    revfilter = !revfilter;
+    filter(&text);
+    revfilter = !revfilter;
+    ui->input->setPlainText(text);
     if (autocopy) {
         QClipboard* clipboard = QApplication::clipboard();
         clipboard->setText(text);
@@ -264,11 +337,13 @@ void MainWindow::on_actionEdit_Filter_triggered() {
         //sets window flags to be the same as the mainwindow
         z.setWindowFlags(Qt::Window | flags);
         //moves the window to current window position
-        z.move(pos());
         z.show();
+        z.move(pos());
+        z.setFocus();
+        z.raise();
         z.exec();
         //refreshes text
-        on_input_textChanged();
+        updateText();
         //window is closed
         alreadyopen = false;
     } else {
@@ -289,7 +364,7 @@ void MainWindow::on_actionOpen_Filter_triggered() {
         layoutfile = checkfile;
     }
     //updates text
-    on_input_textChanged();
+    updateText();
 }
 
 void MainWindow::on_actionSave_Filter_As_triggered() {
@@ -324,7 +399,7 @@ void MainWindow::on_actionNew_Filter_triggered() {
         layoutfile = testfile;
     }
     //updates text
-    on_input_textChanged();
+    updateText();
 }
 
 void MainWindow::on_autocopy_toggled(bool checked) {
@@ -336,7 +411,7 @@ void MainWindow::on_revtext_toggled(bool checked) {
     //sets reversetext to be equal to its checkbox
     revtext = checked;
     //updates text
-    on_input_textChanged();
+    updateText();
 }
 
 void MainWindow::on_actionAlways_on_top_triggered(bool checked) {
@@ -355,11 +430,6 @@ void MainWindow::on_actionFrameless_triggered(bool checked) {
     z.information(
         this, "Note", "Restart the program for changes to take effect. To close the frameless window use Filter / Quit."
     );
-}
-
-void MainWindow::on_checkBox_toggled(bool checked) {
-    revfilter = checked;
-    on_input_textChanged();
 }
 
 void MainWindow::on_actionTransparent_triggered(bool checked) {
@@ -384,13 +454,13 @@ void MainWindow::on_actionOpen_Key_triggered() {
     aesKeyPath = filename;
     checkAES();
     //updates text
-    on_input_textChanged();
+    updateText();
 }
 
 void MainWindow::on_actionText_Key_triggered() {
     bool ok;
     QString text = QInputDialog::getText(
-        this, tr("QInputDialog::getText()"), tr("Enter AES Key:"), QLineEdit::EchoMode::PasswordEchoOnEdit, "", &ok
+        this, tr("AES 256 Key"), tr("Enter AES Key:"), QLineEdit::EchoMode::PasswordEchoOnEdit, "", &ok
     );
     if (ok) {
         aesKey = toByteArray(text);
@@ -398,14 +468,14 @@ void MainWindow::on_actionText_Key_triggered() {
         ui->checkboxAES->setChecked(useAES);
         aesKeyPath = "";
         checkAES();
-        on_input_textChanged();
+        updateText();
     }
 }
 
 void MainWindow::on_checkboxAES_toggled(bool checked) {
     useAES = checked;
     checkAES();
-    on_input_textChanged();
+    updateText();
 }
 
 void MainWindow::checkAES() {
@@ -434,5 +504,27 @@ void MainWindow::on_actionRemember_Key_Values_toggled(bool checked) {
 
 void MainWindow::on_checkEnableFilter_stateChanged(int checked) {
     enableFilters = checked;
-    on_input_textChanged();
+    updateText();
+}
+
+void MainWindow::on_actionURL_encoder_triggered() {
+    bool ok;
+    QString text = QInputDialog::getText(
+        this,
+        tr("URL encoder"),
+        tr("Enter URL encoder string ($$$ will be replaced with encrypted \nresult, otherwise will append to the end):"
+        ),
+        QLineEdit::EchoMode::Normal,
+        urlEncoderString,
+        &ok
+    );
+    if (ok) {
+        urlEncoderString = text;
+        updateText();
+    }
+}
+
+void MainWindow::on_actionEnableCompression_toggled(bool state) {
+    enableCompression = state;
+    updateText();
 }

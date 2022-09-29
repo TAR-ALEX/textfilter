@@ -123,7 +123,7 @@
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="characters">
       <attribute name="title">
@@ -189,8 +189,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>451</width>
-            <height>399</height>
+            <width>415</width>
+            <height>302</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
@@ -216,25 +216,17 @@
                <number>0</number>
               </property>
               <item>
-               <widget class="QLineEdit" name="input_char">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="Line" name="line_3">
+               <spacer name="horizontalSpacer_2">
                 <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+                 <enum>Qt::Horizontal</enum>
                 </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="output_char">
-                <property name="enabled">
-                 <bool>false</bool>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>10000</width>
+                  <height>20</height>
+                 </size>
                 </property>
-               </widget>
+               </spacer>
               </item>
               <item>
                <widget class="QPushButton" name="addSlot_char">
@@ -517,8 +509,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>451</width>
-            <height>399</height>
+            <width>415</width>
+            <height>302</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
@@ -544,25 +536,17 @@
                <number>0</number>
               </property>
               <item>
-               <widget class="QLineEdit" name="input_word">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="Line" name="line_6">
+               <spacer name="horizontalSpacer_3">
                 <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+                 <enum>Qt::Horizontal</enum>
                 </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="output_word">
-                <property name="enabled">
-                 <bool>false</bool>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>10000</width>
+                  <height>20</height>
+                 </size>
                 </property>
-               </widget>
+               </spacer>
               </item>
               <item>
                <widget class="QPushButton" name="addSlot_word">

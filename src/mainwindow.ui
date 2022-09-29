@@ -34,38 +34,44 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0" colspan="6">
-     <widget class="QPlainTextEdit" name="input">
-      <property name="placeholderText">
-       <string>input</string>
-      </property>
-     </widget>
-    </item>
     <item row="5" column="1">
-     <widget class="QCheckBox" name="revtext">
+     <widget class="QCheckBox" name="checkEnableFilter">
       <property name="text">
-       <string>reverse text</string>
+       <string>filter</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="0" colspan="6">
-     <widget class="QPlainTextEdit" name="output">
-      <property name="readOnly">
-       <bool>true</bool>
+    <item row="5" column="0">
+     <widget class="QCheckBox" name="autocopy">
+      <property name="text">
+       <string>auto copy</string>
       </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+      <property name="autoExclusive">
+       <bool>false</bool>
+      </property>
+      <property name="tristate">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" colspan="9">
+     <widget class="QPlainTextEdit" name="output">
       <property name="placeholderText">
        <string>output</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="2">
+    <item row="5" column="3">
      <widget class="QCheckBox" name="checkboxAES">
       <property name="text">
        <string>AES 256</string>
       </property>
      </widget>
     </item>
-    <item row="3" column="0" colspan="6">
+    <item row="3" column="0" colspan="9">
      <widget class="Line" name="separate">
       <property name="enabled">
        <bool>true</bool>
@@ -87,37 +93,21 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="0">
-     <widget class="QCheckBox" name="autocopy">
-      <property name="text">
-       <string>auto copy</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-      <property name="autoExclusive">
-       <bool>false</bool>
-      </property>
-      <property name="tristate">
-       <bool>false</bool>
+    <item row="2" column="0" colspan="9">
+     <widget class="QPlainTextEdit" name="input">
+      <property name="placeholderText">
+       <string>input</string>
       </property>
      </widget>
     </item>
-    <item row="6" column="0">
-     <widget class="QCheckBox" name="checkEnableFilter">
+    <item row="5" column="2">
+     <widget class="QCheckBox" name="revtext">
       <property name="text">
-       <string>filter</string>
+       <string>reverse text</string>
       </property>
      </widget>
     </item>
-    <item row="6" column="1">
-     <widget class="QCheckBox" name="checkBox">
-      <property name="text">
-       <string>invert</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="4">
+    <item row="5" column="6">
      <widget class="QLabel" name="label">
       <property name="text">
        <string/>
@@ -133,7 +123,7 @@
       </property>
      </widget>
     </item>
-    <item row="6" column="2">
+    <item row="5" column="4">
      <spacer name="horizontalSpacer">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -219,6 +209,8 @@
     <addaction name="actionText_Key"/>
     <addaction name="actionForget_Keys_and_Paths"/>
     <addaction name="actionRemember_Key_Values"/>
+    <addaction name="actionEnableCompression"/>
+    <addaction name="actionURL_encoder"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -356,6 +348,19 @@
    </property>
    <property name="text">
     <string>Store Text Keys</string>
+   </property>
+  </action>
+  <action name="actionEnableCompression">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Compression</string>
+   </property>
+  </action>
+  <action name="actionURL_encoder">
+   <property name="text">
+    <string>URL encoder</string>
    </property>
   </action>
  </widget>
